@@ -69,7 +69,6 @@ def download_html(data_directory, which="all"):
     pool.map(fetch_data_in_parallel,
         ((i, which, element_names_dict, data_directory) for i in range(len(which))))
 
-
 def fetch_data_in_parallel(index_list_dict_folder):
     """
     The delay between request and recieve makes fetching data for many
@@ -108,7 +107,6 @@ def fetch_data_in_parallel(index_list_dict_folder):
             print(filepath + " downloaded")
         except HTTPError:
             print(f"Unable to download {urlname}. Invalid URL.")
-
 
 def extract_mass_from_html(filename):
     """
@@ -238,10 +236,8 @@ def extract_mass_from_html(filename):
 
         return data, names
 
-
-
 class MassesClass(dict):
-    def __init__(self, which="all"):
+    def __init__(self, which="all", unit="kg", suppress_print=False):
         """
         Parameters
         ----------
@@ -321,9 +317,9 @@ class MassesClass(dict):
         #     self.mass_data_in_kg[key] = self.mass_data_in_amu[key]*self.amu_to_kg
 
         # self.names = sorted(self.names)
-        self.set_unit()
+        self.set_unit(unit, suppress_print=True)
 
-    def set_unit(self, unit="ev"):
+    def set_unit(self, unit, suppress_print=False):
         """
         Set the mass unit.
 
@@ -338,19 +334,22 @@ class MassesClass(dict):
             self.current_unit = "eV"
             self.set_attributes(self.mass_data_in_eV)
             fac = self.kg_to_eV # Base unit of all other masses is kg.
-            print(f"Unit set to 'eV/c**2'.")
+            if not suppress_print:
+                print(f"Unit set to 'eV/c**2'.")
         
         elif (unit == "amu") or (unit == "u"):
             self.current_unit = "amu"
             self.set_attributes(self.mass_data_in_amu)
             fac = self.kg_to_amu    # Base unit of all other masses is kg.
-            print(f"Unit set to 'amu'.")
+            if not suppress_print:
+                print(f"Unit set to 'amu'.")
        
         elif (unit == "kg"):
             self.current_unit = "kg"
             self.set_attributes(self.mass_data_in_kg)
             fac = 1 # Base unit of all other masses is kg.
-            print(f"Unit set to 'kg'.")
+            if not suppress_print:
+                print(f"Unit set to 'kg'.")
         
         else:
             print(f"Invalid unit. Use 'eV', 'amu', or 'kg'. Got {unit}.")
@@ -436,7 +435,6 @@ class MassesClass(dict):
         super(MassesClass, self).__init__(*args, **kwargs)
         self.__dict__.update(self)
         
-        
 class LifetimeClass:
 
     # Leptons.
@@ -484,6 +482,7 @@ class UnitsClass:
         pass
 
 m = MassesClass()
+_m_internal = MassesClass(suppress_print=True)  # For use inside this file.
 t = LifetimeClass()
 hl = HalfLifeClass()
 u = UnitsClass()
@@ -506,16 +505,17 @@ pi       = pi                            # Ratio between circumference and diame
 e        = e                             # Eulers number, [unitless].
 sigma    = 2*pi**5*kb**4/(15*c**2*h**3)  # Stefan-Boltzmanns constant, [W/(m^2*K^4)].
 # constants, units
-c_unit     = "m/s"
-h_unit     = "m^2*kg/s"
-hbar_unit  = "m^2*kg/s"
-kb_unit    = "m^2*kg/(K*s^2) = J/K"
-kb_ev_unit = "ev/K"
-G_unit     = "m^3/(kg*s^2)"
-R_unit     = "J/(K mol)"
-pi_unit    = "unitless"
-e_unit     = "unitless"
-sigma_unit = "W/(m^2*K^4)"
+c_unit     = "speed of light m/s"
+h_unit     = "planck constant m^2*kg/s"
+hbar_unit  = "reduced planck constant m^2*kg/s"
+kb_unit    = "boltzmann constant m^2*kg/(K*s^2) = J/K"
+kb_ev_unit = "boltzmann constant ev/K"
+G_unit     = "universal gravitational constant m^3/(kg*s^2)"
+g_unit     = "gravitational acceleration m*s^-2"
+R_unit     = "gas constant J/(K mol)"
+pi_unit    = "ratio between circumference and diameter of a circle unitless"
+e_unit     = "eulers number unitless"
+sigma_unit = "stefan-boltzmann constant W/(m^2*K^4)"
 
 
 # lengths
@@ -549,10 +549,13 @@ L_sol       = 3.828e26                # solar luminosity, [W]
 yr          = 31556926                # seconds in a year, [s]
 ec          = 1.60217662e-19          # elementary charge, [coulomb]
 alpha       = 0.0072973525693         # fine structure constant
+mu_b        = ec*hbar/(2*_m_internal.electron)
 # unsorted, units
-atm_unit   = "Pa"
-mol_unit   = "unitless"
-T_sol_unit = "K"
-L_sol_unit = "W"
-yr_unit    = "s"
-ec_unit    = "C"
+atm_unit   = "atmospheric pressure [Pa]"
+mol_unit   = "mole [unitless]"
+T_sol_unit = "core temperature of the sun [K]"
+L_sol_unit = "solar luminosity [W]"
+yr_unit    = "seconds in a year [s]"
+ec_unit    = "elementary charge [C]"
+alpha_unit = "fine structure constant [unitless]"
+mu_b_unit  = "bohr magneton [J/T]"
